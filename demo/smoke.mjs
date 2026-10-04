@@ -32,7 +32,7 @@ await b.waitForSelector(".room");
 await a.click("text=/Finished E1/");
 await a.click("text=/Finished E2/");
 await a.click("text=/Finished E3/");
-for (let i = 0; i < 6; i++) await a.click("text=+5m");
+for (let i = 0; i < 6; i++) await a.click("text=+5 min");
 await a.fill(".composer input", "I can't believe who was in the elevator!!");
 await a.press(".composer input", "Enter");
 await b.waitForTimeout(2500);

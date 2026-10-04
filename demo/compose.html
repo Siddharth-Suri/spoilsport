@@ -5,71 +5,60 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
 <style>
   * { box-sizing: border-box; }
-  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; font-family: Inter, sans-serif; color: #fff; }
-  body { background: #120c1c; }
-  .bg {
-    position: absolute; inset: 0;
-    background:
-      radial-gradient(1100px 700px at 0% 0%, #6d2a8c 0%, transparent 60%),
-      radial-gradient(1000px 700px at 100% 100%, #ff6a4d 0%, transparent 55%),
-      radial-gradient(900px 600px at 100% 0%, #2c3c9c 0%, transparent 60%),
-      linear-gradient(135deg, #2a1240, #1a0f2a);
-  }
-  .grain { position: absolute; inset: 0; opacity: .06; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>"); }
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #141414; }
+  body { background: #ebe9e4; }
+  .bg { position: absolute; inset: 0; background: #ebe9e4; }
+  .grain { display: none; }
+  .wm { font-family: "Bebas Neue", Impact, sans-serif; color: #e50914; letter-spacing: .02em; line-height: .9; }
 
   .scene { position: absolute; inset: 0; opacity: 0; }
   .scene.on { opacity: 1; }
 
-  /* App stage: 3840x2160 authored, displayed at 0.5 then zoomed */
   .viewport { position: absolute; inset: 0; overflow: hidden; }
   .stage { position: absolute; left: 0; top: 0; width: 3840px; height: 2160px; transform-origin: 0 0; }
-  .win { position: absolute; border-radius: 26px; overflow: hidden; background: #0e0b14;
-         box-shadow: 0 60px 140px -20px rgba(0,0,0,.65), 0 0 0 2px rgba(255,255,255,.08); }
-  .bar { height: 72px; background: #221b30; display: flex; align-items: center; padding: 0 26px; gap: 14px; border-bottom: 2px solid #2f2842; }
+  .win { position: absolute; border-radius: 16px; overflow: hidden; background: #fff;
+         box-shadow: 0 2px 6px rgba(0,0,0,.08), 0 40px 90px -20px rgba(0,0,0,.28), 0 0 0 2px rgba(0,0,0,.06); }
+  .bar { height: 72px; background: #f6f6f6; display: flex; align-items: center; padding: 0 26px; gap: 14px; border-bottom: 2px solid #e2e2e2; }
   .bar i { width: 22px; height: 22px; border-radius: 50%; display: inline-block; }
   .bar .r { background: #ff5f57 } .bar .y { background: #febc2e } .bar .g { background: #28c840 }
-  .bar .url { margin-left: 24px; flex: 1; max-width: 900px; height: 44px; border-radius: 12px; background: #15101e; color: #9a90b0; font-size: 24px; display: flex; align-items: center; padding: 0 20px; gap: 10px; }
-  .bar .who { margin-left: auto; font-size: 26px; font-weight: 700; color: #f4f0fa; display: flex; gap: 12px; align-items: center; }
-  .bar .who b { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 18px; }
+  .bar .url { margin-left: 24px; flex: 1; max-width: 900px; height: 44px; border-radius: 8px; background: #ebebeb; color: #555; font-size: 24px; display: flex; align-items: center; padding: 0 20px; gap: 10px; }
+  .bar .who { margin-left: auto; font-size: 26px; font-weight: 700; color: #141414; display: flex; gap: 12px; align-items: center; }
+  .bar .who b { width: 40px; height: 40px; border-radius: 6px; display: grid; place-items: center; font-size: 20px; color: #fff; }
   .win img { display: block; }
 
   .caption {
-    position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%);
-    background: rgba(14, 10, 22, .82); backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,.14);
-    padding: 16px 30px; border-radius: 999px; font-size: 30px; font-weight: 600; letter-spacing: -.01em;
-    white-space: nowrap; box-shadow: 0 20px 50px -10px rgba(0,0,0,.6);
+    position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%);
+    background: #141414; color: #fff; border-left: 6px solid #e50914;
+    padding: 16px 28px; border-radius: 4px; font-size: 30px; font-weight: 700; letter-spacing: -.005em;
+    white-space: nowrap; box-shadow: 0 12px 30px -8px rgba(0,0,0,.35);
   }
-  .tag { position: absolute; left: 44px; top: 34px; display: flex; gap: 12px; align-items: center; font-weight: 700; font-size: 24px; opacity: .92; }
-  .tag img { width: 34px; height: 34px; }
-  .tag span.sub { font-weight: 500; opacity: .7; }
+  .tag { position: absolute; left: 50px; top: 38px; display: flex; gap: 16px; align-items: baseline; font-size: 22px; color: #555; font-weight: 500; }
+  .tag .wm { font-size: 40px; }
 
-  /* Title / end cards */
   .card { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
-  .card .inner { display: grid; justify-items: center; gap: 22px; }
-  .card h1 { font-family: "Instrument Serif", serif; font-weight: 400; font-size: 150px; line-height: .95; margin: 0; letter-spacing: -.02em; }
-  .card h1 em { color: #ff8a7a; }
-  .card p { margin: 0; font-size: 38px; opacity: .85; font-weight: 500; }
-  .pill { display: inline-flex; gap: 14px; align-items: center; padding: 14px 26px; border-radius: 999px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); font-size: 26px; font-weight: 600; }
-  .logo { width: 120px; height: 120px; }
+  .card .inner { display: grid; justify-items: center; gap: 26px; }
+  .card .wm.big { font-size: 230px; }
+  .card h1 { font-weight: 800; font-size: 104px; line-height: 1; margin: 0; letter-spacing: -.025em; }
+  .card p { margin: 0; font-size: 36px; color: #444; font-weight: 500; }
+  .pill { display: inline-flex; gap: 14px; align-items: center; padding: 14px 24px; border-radius: 4px; background: #141414; color: #fff; font-size: 26px; font-weight: 700; }
+  .logo { display: none; }
 
-  /* MCP calls card */
-  .mcp { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 1300px; border-radius: 26px; overflow: hidden; background: #0f0c15; box-shadow: 0 60px 140px -20px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.1); }
-  .mcp .bar { height: 54px; padding: 0 20px; } .mcp .bar i { width: 16px; height: 16px; }
-  .mcp .bar .title { margin-left: 14px; font-size: 20px; color: #9a90b0; font-weight: 600; }
-  .mcp .body { padding: 34px 40px 40px; font-family: "JetBrains Mono", monospace; font-size: 23px; display: grid; gap: 16px; }
-  .mcp .head { font-family: Inter; font-size: 34px; font-weight: 700; margin-bottom: 8px; }
-  .mcp .head span { color: #ff8a7a; }
+  .mcp { position: absolute; left: 50%; top: 47%; transform: translate(-50%, -50%); width: 1320px; border-radius: 12px; overflow: hidden; background: #141414; color: #fff; box-shadow: 0 40px 90px -20px rgba(0,0,0,.35); }
+  .mcp .bar { height: 54px; padding: 0 20px; background: #1f1f1f; border-bottom: 1px solid #2c2c2c; } .mcp .bar i { width: 16px; height: 16px; }
+  .mcp .bar .title { margin-left: 14px; font-size: 20px; color: #9a9a9a; font-weight: 600; }
+  .mcp .body { padding: 34px 40px 40px; font-family: "JetBrains Mono", Menlo, monospace; font-size: 23px; display: grid; gap: 16px; }
+  .mcp .head { font-family: "Helvetica Neue", Helvetica, sans-serif; font-size: 36px; font-weight: 800; margin-bottom: 8px; }
+  .mcp .head span { color: #e50914; }
   .call { display: flex; gap: 16px; align-items: baseline; opacity: 0; transform: translateY(10px); }
-  .call .dot { color: #3ecf8e; }
-  .call .fn { color: #ffb86b; font-weight: 700; }
-  .call .arg { color: #c6bfd6; white-space: nowrap; }
-  .call .res { color: #7d7491; margin-left: auto; font-size: 21px; white-space: nowrap; }
+  .call .dot { color: #46d369; }
+  .call .fn { color: #fff; font-weight: 700; }
+  .call .arg { color: #b3b3b3; white-space: nowrap; }
+  .call .res { color: #808080; margin-left: auto; font-size: 21px; white-space: nowrap; }
 
-  /* User-provided agent clip */
-  .clipwin { position: absolute; border-radius: 22px; overflow: hidden; box-shadow: 0 60px 140px -20px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.1); background: #000; }
+  .clipwin { position: absolute; border-radius: 12px; overflow: hidden; box-shadow: 0 40px 90px -20px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.08); background: #000; }
   .clipwin img { display: block; width: 100%; height: 100%; object-fit: contain; }
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
 </head>
 <body>
 <div class="bg"></div><div class="grain"></div>
@@ -77,9 +66,8 @@
 <!-- Title -->
 <div class="scene" id="s-title">
   <div class="card"><div class="inner">
-    <img class="logo" src="../public/favicon.svg" />
-    <h1>Spoilsport</h1>
-    <p>A watch-party chat that <em style="color:#ff8a7a;font-style:normal">can't spoil the show</em></p>
+    <div class="wm big">Spoilsport</div>
+    <p>The watch-party chat that can't spoil the show.</p>
     <div class="pill">Built with Claude Code + the CometChat MCP · #ZeroToChat</div>
   </div></div>
 </div>
@@ -102,19 +90,19 @@
 <!-- App demo -->
 <div class="scene" id="s-app">
   <div class="viewport"><div class="stage" id="stage">
-    <div class="win" id="w-maya"><div class="bar"><i class="r"></i><i class="y"></i><i class="g"></i><div class="url">🔒 <span class="host">spoilsport.vercel.app</span></div><div class="who"><b style="background:#b26bff">M</b>Maya</div></div><img id="i-maya" width="1800" height="1440" /></div>
-    <div class="win" id="w-dev"><div class="bar"><i class="r"></i><i class="y"></i><i class="g"></i><div class="url">🔒 <span class="host">spoilsport.vercel.app</span></div><div class="who"><b style="background:#3ecf8e">D</b>Dev</div></div><img id="i-dev" width="1800" height="1440" /></div>
+    <div class="win" id="w-maya"><div class="bar"><i class="r"></i><i class="y"></i><i class="g"></i><div class="url"><span class="host">spoilsport.vercel.app</span></div><div class="who"><b id="av-maya">M</b>Maya</div></div><img id="i-maya" width="1800" height="1440" /></div>
+    <div class="win" id="w-dev"><div class="bar"><i class="r"></i><i class="y"></i><i class="g"></i><div class="url"><span class="host">spoilsport.vercel.app</span></div><div class="who"><b id="av-dev">D</b>Dev</div></div><img id="i-dev" width="1800" height="1440" /></div>
   </div></div>
-  <div class="tag"><img src="../public/favicon.svg" />Spoilsport <span class="sub">· two real users, live on CometChat</span></div>
+  <div class="tag"><span class="wm">Spoilsport</span><span>Two real users, live on CometChat</span></div>
 </div>
 
 <!-- End -->
 <div class="scene" id="s-end">
   <div class="card"><div class="inner">
-    <img class="logo" src="../public/favicon.svg" />
-    <h1>Watch together.<br /><em>Spoil nothing.</em></h1>
+    <div class="wm" style="font-size:90px">Spoilsport</div>
+    <h1>Watch together.<br />Spoil nothing.</h1>
     <div class="pill" id="end-links"></div>
-    <p style="font-size:30px;opacity:.7">Chat · presence · typing by CometChat. Built via the CometChat MCP in Claude Code.</p>
+    <p style="font-size:28px;color:#666">Chat, presence and typing by CometChat. Built via the CometChat MCP in Claude Code.</p>
   </div></div>
 </div>
 
@@ -133,6 +121,7 @@ window.init = (data) => {
     w.style.left = o.x + "px";
     w.style.top = (o.y - 72) + "px";
   }
+  for (const [n, c] of Object.entries(D.app.colors ?? {})) document.getElementById("av-" + n).style.background = c;
   const calls = document.getElementById("calls");
   for (const c of D.mcpCalls) {
     const el = document.createElement("div");
@@ -233,7 +222,7 @@ window.renderAt = async (g) => {
     const cam = cameraAt(at);
     const s = 0.5 * cam.z;
     document.getElementById("stage").style.transform = `scale(${s}) translate(${-cam.l}px, ${-cam.t}px)`;
-    sceneEl.querySelector(".tag").style.opacity = clamp(1 - (cam.z - 1) * 6, 0, 0.92);
+    sceneEl.querySelector(".tag").style.opacity = clamp(1 - (cam.z - 1) * 6, 0, 1);
     const caps = D.app.events.filter((e) => e.type === "caption");
     let ci = -1;
     caps.forEach((c, i) => { if (c.t <= at) ci = i; });

@@ -129,7 +129,7 @@ await maya.page.keyboard.type("10", { delay: 80 });
 await click(maya, "text=Create room");
 await maya.page.waitForSelector(".room");
 await sleep(500);
-await click(maya, ".invite");
+await click(maya, ".btn-outline");
 const url = maya.page.url();
 await sleep(500);
 
@@ -145,7 +145,7 @@ await sleep(900);
 caption("Maya drags to where she actually is: halfway through Episode 4");
 zoom(await windowRect(maya), 1.0);
 {
-  const { box } = await center(maya, ".track");
+  const { box } = await center(maya, ".rail");
   const y = box.y + box.height / 2;
   await glide(maya, box.x + 4, y, 600);
   await maya.page.mouse.down();
@@ -182,7 +182,7 @@ await sleep(300);
 
 caption("A few episodes later, Dev catches up…");
 {
-  const { box } = await center(dev, ".track");
+  const { box } = await center(dev, ".rail");
   const y = box.y + box.height / 2;
   await glide(dev, box.x + 4, y, 600);
   await dev.page.mouse.down();
@@ -200,6 +200,8 @@ await type(dev, ".composer input", "THE ELEVATOR. I'm screaming 😭", 50);
 await dev.page.keyboard.press("Enter");
 await sleep(2400);
 
+const avatarColor = (w) => w.page.$eval(".nav-right .avatar", (el) => getComputedStyle(el).backgroundColor);
+const colors = { maya: await avatarColor(maya), dev: await avatarColor(dev) };
 const tEnd = now();
 await maya.stop();
 await dev.stop();
@@ -213,6 +215,7 @@ fs.writeFileSync(
       end: tEnd,
       epochStart: t0 / 1000 + tStart,
       windows: WIN,
+      colors,
       events: events.map((e) => ({ ...e, t: e.t - tStart })),
       frames: { maya: maya.frames, dev: dev.frames },
     },

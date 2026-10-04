@@ -1,5 +1,5 @@
 
-const PALETTE = ["#ff5a5f", "#ffb020", "#3ecf8e", "#4f8cff", "#b26bff", "#ff7ac6", "#2ec4d6", "#f2734b"];
+const PALETTE = ["#0071eb", "#e8a800", "#2bb871", "#8c4bd6", "#e5560f", "#00a3b4", "#d6336c", "#5b6b7f"];
 
 export function colorFor(uid: string) {
   let h = 0;
@@ -32,7 +32,7 @@ export function Avatar({
   const id = user?.getUid() ?? uid ?? "?";
   const n = user?.getName() ?? name ?? "?";
   return (
-    <span className="avatar" style={{ width: size, height: size, background: colorFor(id), fontSize: size * 0.4 }} title={n}>
+    <span className="avatar" style={{ width: size, height: size, background: colorFor(id), fontSize: size * 0.42 }} title={n}>
       {initials(n)}
       {online !== undefined && <i className={online ? "dot on" : "dot"} />}
     </span>

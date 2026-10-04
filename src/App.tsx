@@ -53,43 +53,44 @@ export default function App() {
   }
 
   return (
-    <div className="landing">
-      <div className="landing-copy">
-        <Logo />
-        <h1>
-          Watch together.<br />
-          <em>Spoil nothing.</em>
-        </h1>
-        <p>
-          A group chat for people watching the same show at different speeds. Every message is stamped with
-          where the sender is in the show. Anything ahead of you stays blurred until you catch up.
-        </p>
-        <ul className="bullets">
-          <li><span>🎬</span>Set your spot: episode + minute</li>
-          <li><span>🫥</span>Messages from ahead of you blur automatically</li>
-          <li><span>🔓</span>Scrub forward and they unlock live</li>
-        </ul>
-      </div>
-      <div className="card">
-        {error && <div className="error">{error}</div>}
-        {!user ? (
-          <NameForm onDone={setUser} onError={setError} />
-        ) : (
-          <Lobby
-            me={user}
-            invited={roomFromUrl()}
-            onRoom={(g) => {
-              setError("");
-              setRoomInUrl(g.getGuid().replace(/^wp-/, ""));
-              setGroup(g);
-            }}
-            onError={setError}
-            onSignOut={async () => {
-              await signOut();
-              setUser(null);
-            }}
-          />
-        )}
+    <div className="shell landing-shell">
+      <nav className="topnav">
+        <span className="wordmark">Spoilsport</span>
+      </nav>
+      <div className="landing">
+        <div className="landing-copy">
+          <h1>Watch together.<br />Spoil nothing.</h1>
+          <p>
+            A group chat for friends watching the same show at different speeds. Every message is tagged with
+            where the sender is in the show, and anything past your spot stays hidden until you get there.
+          </p>
+          <ol className="steps">
+            <li><span><b>Start a room</b> for the show you're watching and share the link.</span></li>
+            <li><span><b>Set your spot</b> by dragging to your episode and minute.</span></li>
+            <li><span><b>Chat freely.</b> Messages from ahead of you unlock as you catch up.</span></li>
+          </ol>
+        </div>
+        <div className="card">
+          {error && <div className="error">{error}</div>}
+          {!user ? (
+            <NameForm onDone={setUser} onError={setError} />
+          ) : (
+            <Lobby
+              me={user}
+              invited={roomFromUrl()}
+              onRoom={(g) => {
+                setError("");
+                setRoomInUrl(g.getGuid().replace(/^wp-/, ""));
+                setGroup(g);
+              }}
+              onError={setError}
+              onSignOut={async () => {
+                await signOut();
+                setUser(null);
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
@@ -97,10 +98,7 @@ export default function App() {
 
 function Logo() {
   return (
-    <div className="logo">
-      <img src="/favicon.svg" alt="" width={28} height={28} />
-      <span>Spoilsport</span>
-    </div>
+    <span className="wordmark">Spoilsport</span>
   );
 }
 
@@ -123,9 +121,10 @@ function NameForm({ onDone, onError }: { onDone: (u: CometChat.User) => void; on
         }
       }}
     >
-      <label className="label" htmlFor="name">What should the party call you?</label>
+      <h2>Join the party</h2>
+      <label className="label" htmlFor="name">Your name</label>
       <input id="name" autoFocus placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} maxLength={32} />
-      <button className="primary" disabled={busy || !name.trim()}>{busy ? "Signing in…" : "Continue"}</button>
+      <button className="btn-red" disabled={busy || !name.trim()}>{busy ? "Signing in…" : "Continue"}</button>
     </form>
   );
 }
@@ -178,8 +177,8 @@ function Lobby({
           run(async () => joinRoom(await createRoom(info)));
         }}
       >
-        <div className="label">Start a watch party</div>
-        <input placeholder="Show title, e.g. The Long Dark Season 1" value={show} onChange={(e) => setShow(e.target.value)} maxLength={60} />
+        <h2>Start a watch party</h2>
+        <input placeholder="Show title" value={show} onChange={(e) => setShow(e.target.value)} maxLength={60} />
         <div className="row">
           <label className="mini">
             Episodes
@@ -190,7 +189,7 @@ function Lobby({
             <input type="number" min={5} max={180} value={epLength} onChange={(e) => setEpLength(+e.target.value || 5)} />
           </label>
         </div>
-        <button className="primary" disabled={busy || !show.trim()}>Create room</button>
+        <button className="btn-red" disabled={busy || !show.trim()}>Create room</button>
       </form>
 
       <div className="or"><span>or</span></div>
@@ -201,10 +200,10 @@ function Lobby({
           run(() => joinRoom(code.trim()));
         }}
       >
-        <div className="label">Join with a code</div>
+        <label className="label">Have a room code?</label>
         <div className="row">
           <input placeholder="abc123" value={code} onChange={(e) => setCode(e.target.value)} />
-          <button className="secondary" disabled={busy || !code.trim()}>Join</button>
+          <button className="btn-dark" disabled={busy || !code.trim()}>Join</button>
         </div>
       </form>
     </div>
