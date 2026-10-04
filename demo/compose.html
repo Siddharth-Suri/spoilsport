@@ -1,0 +1,249 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; font-family: Inter, sans-serif; color: #fff; }
+  body { background: #120c1c; }
+  .bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(1100px 700px at 0% 0%, #6d2a8c 0%, transparent 60%),
+      radial-gradient(1000px 700px at 100% 100%, #ff6a4d 0%, transparent 55%),
+      radial-gradient(900px 600px at 100% 0%, #2c3c9c 0%, transparent 60%),
+      linear-gradient(135deg, #2a1240, #1a0f2a);
+  }
+  .grain { position: absolute; inset: 0; opacity: .06; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>"); }
+
+  .scene { position: absolute; inset: 0; opacity: 0; }
+  .scene.on { opacity: 1; }
+
+  /* App stage: 3840x2160 authored, displayed at 0.5 then zoomed */
+  .viewport { position: absolute; inset: 0; overflow: hidden; }
+  .stage { position: absolute; left: 0; top: 0; width: 3840px; height: 2160px; transform-origin: 0 0; }
+  .win { position: absolute; border-radius: 26px; overflow: hidden; background: #0e0b14;
+         box-shadow: 0 60px 140px -20px rgba(0,0,0,.65), 0 0 0 2px rgba(255,255,255,.08); }
+  .bar { height: 72px; background: #221b30; display: flex; align-items: center; padding: 0 26px; gap: 14px; border-bottom: 2px solid #2f2842; }
+  .bar i { width: 22px; height: 22px; border-radius: 50%; display: inline-block; }
+  .bar .r { background: #ff5f57 } .bar .y { background: #febc2e } .bar .g { background: #28c840 }
+  .bar .url { margin-left: 24px; flex: 1; max-width: 900px; height: 44px; border-radius: 12px; background: #15101e; color: #9a90b0; font-size: 24px; display: flex; align-items: center; padding: 0 20px; gap: 10px; }
+  .bar .who { margin-left: auto; font-size: 26px; font-weight: 700; color: #f4f0fa; display: flex; gap: 12px; align-items: center; }
+  .bar .who b { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 18px; }
+  .win img { display: block; }
+
+  .caption {
+    position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%);
+    background: rgba(14, 10, 22, .82); backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,.14);
+    padding: 16px 30px; border-radius: 999px; font-size: 30px; font-weight: 600; letter-spacing: -.01em;
+    white-space: nowrap; box-shadow: 0 20px 50px -10px rgba(0,0,0,.6);
+  }
+  .tag { position: absolute; left: 44px; top: 34px; display: flex; gap: 12px; align-items: center; font-weight: 700; font-size: 24px; opacity: .92; }
+  .tag img { width: 34px; height: 34px; }
+  .tag span.sub { font-weight: 500; opacity: .7; }
+
+  /* Title / end cards */
+  .card { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+  .card .inner { display: grid; justify-items: center; gap: 22px; }
+  .card h1 { font-family: "Instrument Serif", serif; font-weight: 400; font-size: 150px; line-height: .95; margin: 0; letter-spacing: -.02em; }
+  .card h1 em { color: #ff8a7a; }
+  .card p { margin: 0; font-size: 38px; opacity: .85; font-weight: 500; }
+  .pill { display: inline-flex; gap: 14px; align-items: center; padding: 14px 26px; border-radius: 999px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); font-size: 26px; font-weight: 600; }
+  .logo { width: 120px; height: 120px; }
+
+  /* MCP calls card */
+  .mcp { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 1300px; border-radius: 26px; overflow: hidden; background: #0f0c15; box-shadow: 0 60px 140px -20px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.1); }
+  .mcp .bar { height: 54px; padding: 0 20px; } .mcp .bar i { width: 16px; height: 16px; }
+  .mcp .bar .title { margin-left: 14px; font-size: 20px; color: #9a90b0; font-weight: 600; }
+  .mcp .body { padding: 34px 40px 40px; font-family: "JetBrains Mono", monospace; font-size: 23px; display: grid; gap: 16px; }
+  .mcp .head { font-family: Inter; font-size: 34px; font-weight: 700; margin-bottom: 8px; }
+  .mcp .head span { color: #ff8a7a; }
+  .call { display: flex; gap: 16px; align-items: baseline; opacity: 0; transform: translateY(10px); }
+  .call .dot { color: #3ecf8e; }
+  .call .fn { color: #ffb86b; font-weight: 700; }
+  .call .arg { color: #c6bfd6; white-space: nowrap; }
+  .call .res { color: #7d7491; margin-left: auto; font-size: 21px; white-space: nowrap; }
+
+  /* User-provided agent clip */
+  .clipwin { position: absolute; border-radius: 22px; overflow: hidden; box-shadow: 0 60px 140px -20px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.1); background: #000; }
+  .clipwin img { display: block; width: 100%; height: 100%; object-fit: contain; }
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="grain"></div>
+
+<!-- Title -->
+<div class="scene" id="s-title">
+  <div class="card"><div class="inner">
+    <img class="logo" src="../public/favicon.svg" />
+    <h1>Spoilsport</h1>
+    <p>A watch-party chat that <em style="color:#ff8a7a;font-style:normal">can't spoil the show</em></p>
+    <div class="pill">Built with Claude Code + the CometChat MCP · #ZeroToChat</div>
+  </div></div>
+</div>
+
+<!-- Agent clip (optional) -->
+<div class="scene" id="s-clip">
+  <div class="clipwin" id="clipwin"><img id="clipimg" /></div>
+</div>
+
+<!-- MCP tool calls -->
+<div class="scene" id="s-mcp">
+  <div class="mcp">
+    <div class="bar"><i class="r"></i><i class="y"></i><i class="g"></i><span class="title">Claude Code · cometchat MCP</span></div>
+    <div class="body" id="calls">
+      <div class="head">The <span>CometChat MCP</span> did the homework</div>
+    </div>
+  </div>
+</div>
+
+<!-- App demo -->
+<div class="scene" id="s-app">
+  <div class="viewport"><div class="stage" id="stage">
+    <div class="win" id="w-maya"><div class="bar"><i class="r"></i><i class="y"></i><i class="g"></i><div class="url">🔒 <span class="host">spoilsport.vercel.app</span></div><div class="who"><b style="background:#b26bff">M</b>Maya</div></div><img id="i-maya" width="1800" height="1440" /></div>
+    <div class="win" id="w-dev"><div class="bar"><i class="r"></i><i class="y"></i><i class="g"></i><div class="url">🔒 <span class="host">spoilsport.vercel.app</span></div><div class="who"><b style="background:#3ecf8e">D</b>Dev</div></div><img id="i-dev" width="1800" height="1440" /></div>
+  </div></div>
+  <div class="tag"><img src="../public/favicon.svg" />Spoilsport <span class="sub">· two real users, live on CometChat</span></div>
+</div>
+
+<!-- End -->
+<div class="scene" id="s-end">
+  <div class="card"><div class="inner">
+    <img class="logo" src="../public/favicon.svg" />
+    <h1>Watch together.<br /><em>Spoil nothing.</em></h1>
+    <div class="pill" id="end-links"></div>
+    <p style="font-size:30px;opacity:.7">Chat · presence · typing by CometChat. Built via the CometChat MCP in Claude Code.</p>
+  </div></div>
+</div>
+
+<div class="caption" id="caption" style="opacity:0"></div>
+
+<script>
+const ease = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+let D; // data
+const STAGE_W = 3840, STAGE_H = 2160;
+
+window.init = (data) => {
+  D = data;
+  for (const [name, o] of Object.entries(D.app.windows)) {
+    const w = document.getElementById("w-" + name);
+    w.style.left = o.x + "px";
+    w.style.top = (o.y - 72) + "px";
+  }
+  const calls = document.getElementById("calls");
+  for (const c of D.mcpCalls) {
+    const el = document.createElement("div");
+    el.className = "call";
+    el.innerHTML = `<span class="dot">●</span><span class="fn">${c.fn}</span><span class="arg">${c.arg}</span><span class="res">${c.res}</span>`;
+    calls.appendChild(el);
+  }
+  document.getElementById("end-links").textContent = D.endLinks;
+  for (const h of document.querySelectorAll(".host")) h.textContent = D.host;
+  if (D.clip) {
+    const cw = document.getElementById("clipwin");
+    const maxW = 1700, maxH = 860;
+    const s = Math.min(maxW / D.clip.w, maxH / D.clip.h);
+    cw.style.width = D.clip.w * s + "px"; cw.style.height = D.clip.h * s + "px";
+    cw.style.left = (1920 - D.clip.w * s) / 2 + "px"; cw.style.top = (1000 - D.clip.h * s) / 2 + "px";
+  }
+};
+
+function lastFrame(frames, t) {
+  let lo = 0, hi = frames.length - 1;
+  if (t <= frames[0].t) return frames[0];
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (frames[mid].t <= t) lo = mid; else hi = mid - 1; }
+  return frames[lo];
+}
+
+function zoomRectFor(rect) {
+  if (!rect) return { z: 1, l: 0, t: 0 };
+  // z relative to the full stage fitting the 1920x1080 output
+  let z = Math.min(STAGE_W / rect.w, STAGE_H / rect.h);
+  z = clamp(z, 1, 1.8);
+  const vw = STAGE_W / z, vh = STAGE_H / z;
+  const cx = rect.x + rect.w / 2, cy = rect.y + rect.h / 2;
+  return { z, l: clamp(cx - vw / 2, 0, STAGE_W - vw), t: clamp(cy - vh / 2, 0, STAGE_H - vh) };
+}
+
+function cameraAt(t) {
+  const zs = D.app.events.filter((e) => e.type === "zoom");
+  let from = { z: 1, l: 0, t: 0 }, cur = from, start = -1;
+  for (const e of zs) {
+    if (e.t > t) break;
+    from = blendCam(from, cur, start, e.t);
+    cur = zoomRectFor(e.rect); start = e.t;
+  }
+  return blendCam(from, cur, start, t);
+}
+function blendCam(a, b, start, t) {
+  if (start < 0) return b;
+  const k = ease(clamp((t - start) / 0.9, 0, 1));
+  return { z: a.z + (b.z - a.z) * k, l: a.l + (b.l - a.l) * k, t: a.t + (b.t - a.t) * k };
+}
+
+function setCaption(text, age, left) {
+  const c = document.getElementById("caption");
+  if (!text) { c.style.opacity = 0; return; }
+  c.textContent = text;
+  const a = Math.min(clamp(age / 0.3, 0, 1), clamp(left / 0.25, 0, 1));
+  c.style.opacity = a;
+  c.style.transform = `translateX(-50%) translateY(${(1 - ease(a)) * 16}px)`;
+}
+
+const loadImg = (img, src) => {
+  if (img.dataset.src === src) return Promise.resolve();
+  img.dataset.src = src; img.src = src;
+  return img.decode().catch(() => {});
+};
+
+window.renderAt = async (g) => {
+  const seg = D.segments.find((s) => g >= s.start && g < s.start + s.dur) ?? D.segments[D.segments.length - 1];
+  const lt = g - seg.start;
+  for (const el of document.querySelectorAll(".scene")) { el.classList.toggle("on", el.id === "s-" + seg.kind); el.style.opacity = 0; }
+  // cross-fade in from black-ish at segment starts
+  const sceneEl = document.getElementById("s-" + seg.kind);
+  sceneEl.style.opacity = Math.min(clamp(lt / 0.35, 0, 1), clamp((seg.dur - lt) / 0.3, 0, 1));
+  let cap = null;
+
+  if (seg.kind === "title" || seg.kind === "end") {
+    const inner = sceneEl.querySelector(".inner");
+    const k = ease(clamp(lt / 0.8, 0, 1));
+    inner.style.transform = `translateY(${(1 - k) * 30}px) scale(${0.96 + 0.04 * k})`;
+  }
+  if (seg.kind === "mcp") {
+    const calls = sceneEl.querySelectorAll(".call");
+    calls.forEach((el, i) => {
+      const k = ease(clamp((lt - 0.4 - i * 0.32) / 0.35, 0, 1));
+      el.style.opacity = k; el.style.transform = `translateY(${(1 - k) * 10}px)`;
+    });
+    cap = { text: "Every SDK call in the app came from docs the agent pulled live", age: lt - 0.3, left: seg.dur - lt };
+  }
+  if (seg.kind === "clip") {
+    const f = D.clip.frames[Math.min(D.clip.frames.length - 1, Math.floor(lt * D.clip.fps))];
+    await loadImg(document.getElementById("clipimg"), f);
+    cap = { text: "Recorded in Claude Code with the CometChat MCP connector", age: lt - 0.3, left: seg.dur - lt };
+  }
+  if (seg.kind === "app") {
+    const at = lt * D.app.speed;
+    const epoch = D.app.epochStart + at;
+    await Promise.all(["maya", "dev"].map((n) => loadImg(document.getElementById("i-" + n), `raw/${n}/${lastFrame(D.app.frames[n], epoch).file}`)));
+    const cam = cameraAt(at);
+    const s = 0.5 * cam.z;
+    document.getElementById("stage").style.transform = `scale(${s}) translate(${-cam.l}px, ${-cam.t}px)`;
+    sceneEl.querySelector(".tag").style.opacity = clamp(1 - (cam.z - 1) * 6, 0, 0.92);
+    const caps = D.app.events.filter((e) => e.type === "caption");
+    let ci = -1;
+    caps.forEach((c, i) => { if (c.t <= at) ci = i; });
+    if (ci >= 0) {
+      const next = caps[ci + 1]?.t ?? D.app.end - D.app.start;
+      cap = { text: caps[ci].text, age: (at - caps[ci].t) / D.app.speed, left: (next - at) / D.app.speed };
+    }
+  }
+  if (cap) setCaption(cap.text, cap.age, cap.left); else setCaption(null);
+};
+</script>
+</body>
+</html>
