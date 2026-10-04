@@ -42,6 +42,7 @@ if (clipSrc) {
   const files = fs.readdirSync(dir).filter((f) => f.endsWith(".jpg")).sort();
   const probe = execFileSync("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0", `${dir}/${files[0]}`]).toString().trim().split(",");
   clip = { fps: FPS, w: +probe[0], h: +probe[1], frames: files.map((f) => `${dir}/${f}`) };
+  if (fs.existsSync("clip.json")) clip.captions = JSON.parse(fs.readFileSync("clip.json", "utf8")).captions;
   console.log("clip", clip.frames.length / FPS, "s", probe.join("x"));
 }
 
@@ -87,10 +88,11 @@ const out = path.join(OUT, "spoilsport-demo.mp4");
 const video = ["-framerate", String(FPS), "-i", path.join(FRAMES, "%05d.jpg")];
 const enc = ["-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart"];
 if (MUSIC) {
-  // Loop the track if the video runs longer, fade it in/out, and cut at the video's end.
+  // Crossfade the track into a second copy so a longer video never hits a hard loop seam,
+  // then fade in/out and cut at the video's end.
   const fadeOut = Math.max(0, total - 2.5).toFixed(2);
-  execFileSync("ffmpeg", ["-y", "-v", "error", ...video, "-stream_loop", "-1", "-i", MUSIC,
-    "-filter_complex", `[1:a]atrim=0:${total.toFixed(2)},afade=t=in:d=0.6,afade=t=out:st=${fadeOut}:d=2.5,volume=${MUSIC_VOLUME}[a]`,
+  execFileSync("ffmpeg", ["-y", "-v", "error", ...video, "-i", MUSIC, "-i", MUSIC,
+    "-filter_complex", `[1:a][2:a]acrossfade=d=3[m];[m]atrim=0:${total.toFixed(2)},afade=t=in:d=0.6,afade=t=out:st=${fadeOut}:d=2.5,volume=${MUSIC_VOLUME}[a]`,
     "-map", "0:v", "-map", "[a]", ...enc, "-c:a", "aac", "-b:a", "192k", "-shortest", out]);
 } else {
   execFileSync("ffmpeg", ["-y", "-v", "error", ...video, ...enc, out]);

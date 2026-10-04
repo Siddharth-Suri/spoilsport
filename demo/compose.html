@@ -213,7 +213,11 @@ window.renderAt = async (g) => {
   if (seg.kind === "clip") {
     const f = D.clip.frames[Math.min(D.clip.frames.length - 1, Math.floor(lt * D.clip.fps))];
     await loadImg(document.getElementById("clipimg"), f);
-    cap = { text: "Recorded in Claude Code with the CometChat MCP connector", age: lt - 0.3, left: seg.dur - lt };
+    const cs = D.clip.captions ?? [{ t: 0, text: "Recorded in Claude Code with the CometChat MCP connector" }];
+    let ci = 0;
+    cs.forEach((c, i) => { if (c.t <= lt) ci = i; });
+    const next = cs[ci + 1]?.t ?? seg.dur;
+    cap = { text: cs[ci].text, age: lt - cs[ci].t - (ci === 0 ? 0.3 : 0), left: next - lt };
   }
   if (seg.kind === "app") {
     const at = lt * D.app.speed;
