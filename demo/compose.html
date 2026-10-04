@@ -151,7 +151,7 @@ function zoomRectFor(rect) {
   if (!rect) return { z: 1, l: 0, t: 0 };
   // z relative to the full stage fitting the 1920x1080 output
   let z = Math.min(STAGE_W / rect.w, STAGE_H / rect.h);
-  z = clamp(z, 1, 1.8);
+  z = clamp(z, 1, 1.6);
   const vw = STAGE_W / z, vh = STAGE_H / z;
   const cx = rect.x + rect.w / 2, cy = rect.y + rect.h / 2;
   return { z, l: clamp(cx - vw / 2, 0, STAGE_W - vw), t: clamp(cy - vh / 2, 0, STAGE_H - vh) };
