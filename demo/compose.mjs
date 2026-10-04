@@ -11,6 +11,8 @@ const FRAMES = path.join(OUT, "frames");
 const SPEED = Number(process.env.SPEED ?? 1.1);
 const END_LINKS = process.env.END_LINKS ?? "spoilsport.vercel.app";
 const HOST = process.env.HOST ?? "spoilsport.vercel.app";
+const MUSIC = process.env.MUSIC ?? (fs.existsSync("music.mp3") ? "music.mp3" : "");
+const MUSIC_VOLUME = process.env.MUSIC_VOLUME ?? "0.6";
 const CLIP_MAX = Number(process.env.CLIP_MAX ?? 16);
 
 const app = JSON.parse(fs.readFileSync("raw/timeline.json", "utf8"));
@@ -82,5 +84,15 @@ for (let i = 0; i < n; i++) {
 await browser.close();
 
 const out = path.join(OUT, "spoilsport-demo.mp4");
-execFileSync("ffmpeg", ["-y", "-v", "error", "-framerate", String(FPS), "-i", path.join(FRAMES, "%05d.jpg"), "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart", out]);
+const video = ["-framerate", String(FPS), "-i", path.join(FRAMES, "%05d.jpg")];
+const enc = ["-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart"];
+if (MUSIC) {
+  // Loop the track if the video runs longer, fade it in/out, and cut at the video's end.
+  const fadeOut = Math.max(0, total - 2.5).toFixed(2);
+  execFileSync("ffmpeg", ["-y", "-v", "error", ...video, "-stream_loop", "-1", "-i", MUSIC,
+    "-filter_complex", `[1:a]atrim=0:${total.toFixed(2)},afade=t=in:d=0.6,afade=t=out:st=${fadeOut}:d=2.5,volume=${MUSIC_VOLUME}[a]`,
+    "-map", "0:v", "-map", "[a]", ...enc, "-c:a", "aac", "-b:a", "192k", "-shortest", out]);
+} else {
+  execFileSync("ffmpeg", ["-y", "-v", "error", ...video, ...enc, out]);
+}
 console.log("wrote", out, total.toFixed(1), "s");

@@ -31,3 +31,5 @@ dist-ssr
 .vercel
 demo/out
 demo/raw
+demo/music.mp3
+demo/clip.*

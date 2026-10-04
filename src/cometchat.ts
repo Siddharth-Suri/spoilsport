@@ -2,7 +2,6 @@ import { CometChat } from "@cometchat/chat-sdk-javascript";
 
 const APP_ID = import.meta.env.VITE_COMETCHAT_APP_ID as string;
 const REGION = import.meta.env.VITE_COMETCHAT_REGION as string;
-const AUTH_KEY = import.meta.env.VITE_COMETCHAT_AUTH_KEY as string;
 
 export const PROGRESS_TYPE = "progress";
 
@@ -16,7 +15,7 @@ export type ShowInfo = { show: string; episodes: number; epLength: number };
 let initPromise: Promise<boolean> | null = null;
 export function initCometChat() {
   if (!initPromise) {
-    if (!APP_ID || !REGION || !AUTH_KEY) {
+    if (!APP_ID || !REGION) {
       return Promise.reject(new Error("Missing VITE_COMETCHAT_* env vars"));
     }
     const settings = new CometChat.AppSettingsBuilder()
@@ -29,24 +28,20 @@ export function initCometChat() {
   return initPromise;
 }
 
-const slug = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 24) || "viewer";
-
-/** Creates the user on the fly (dev-mode Auth Key flow) and logs them in. */
+/** Asks our server for a fresh user + auth token, so no CometChat key ever ships to the browser. */
 export async function signIn(name: string): Promise<CometChat.User> {
   await initCometChat();
   const existing = await CometChat.getLoggedinUser();
   if (existing) await CometChat.logout();
 
-  const uid = `${slug(name)}-${Math.random().toString(36).slice(2, 6)}`;
-  const user = new CometChat.User(uid);
-  user.setName(name.trim());
-  try {
-    await CometChat.createUser(user, AUTH_KEY);
-  } catch (e) {
-    if ((e as { code?: string }).code !== "ERR_UID_ALREADY_EXISTS") throw e;
-  }
-  return CometChat.login(uid, AUTH_KEY);
+  const res = await fetch("/api/session", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name: name.trim() }),
+  });
+  const data = (await res.json().catch(() => ({}))) as { authToken?: string; error?: string };
+  if (!res.ok || !data.authToken) throw new Error(data.error ?? "Couldn't sign in");
+  return CometChat.login(data.authToken);
 }
 
 export async function currentUser() {
